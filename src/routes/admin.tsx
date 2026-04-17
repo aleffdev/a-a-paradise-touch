@@ -256,8 +256,159 @@ function OrdersTab({ orders }: { orders: DBOrder[] }) {
   );
 }
 
-function ProductsTab({ products, reload }: { products: DBProduct[]; reload: () => void }) {
+const TYPE_LABEL: Record<AvailabilityType, string> = {
+  category: "Categoria",
+  size: "Tamanho de Açaí",
+  topping: "Acompanhamento",
+  calda: "Calda",
+  product: "Produto",
+  flavor: "Sabor",
+};
+
+function CatalogTab({ extraProducts, reload }: { extraProducts: DBProduct[]; reload: () => void }) {
+  const { map: availMap, reload: reloadAvail } = useAvailability();
+  const [filter, setFilter] = useState<"all" | AvailabilityType | "extra">("all");
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+
+  // Built-in catalog items with current availability
+  const catalogItems = useMemo(() => {
+    return buildCatalogItems().map((it) => ({
+      ...it,
+      available: availMap[it.item_key] !== false,
+    }));
+  }, [availMap]);
+
+  const toggleBuiltIn = async (item: AvailabilityItem) => {
+    const newVal = !(availMap[item.item_key] !== false);
+    const { error } = await setItemAvailability(item, newVal);
+    if (error) { toast.error("Erro ao atualizar"); return; }
+    toast.success(newVal ? "Disponível" : "Indisponível");
+    reloadAvail();
+  };
+
+  const filteredCatalog = catalogItems.filter((it) => {
+    if (filter !== "all" && filter !== "extra" && it.item_type !== filter) return false;
+    if (search && !it.label.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const showExtras = filter === "all" || filter === "extra";
+  const filteredExtras = extraProducts.filter((p) =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-5">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-2xl p-4 shadow-soft">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar item..."
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm"
+          />
+        </div>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as typeof filter)}
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm"
+        >
+          <option value="all">Todos</option>
+          <option value="category">Categorias</option>
+          <option value="product">Produtos</option>
+          <option value="flavor">Sabores</option>
+          <option value="size">Tamanhos de Açaí</option>
+          <option value="topping">Acompanhamentos</option>
+          <option value="calda">Caldas</option>
+          <option value="extra">Produtos extras (admin)</option>
+        </select>
+        <button
+          onClick={() => setShowForm((s) => !s)}
+          className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-medium px-4 py-2 rounded-lg shadow-soft active:scale-95 text-sm"
+        >
+          <Plus className="w-4 h-4" /> Novo produto extra
+        </button>
+      </div>
+
+      {showForm && <ExtraProductForm onCreated={() => { setShowForm(false); reload(); }} />}
+
+      {/* Built-in catalog items */}
+      {filter !== "extra" && (
+        <div className="grid gap-2">
+          {filteredCatalog.length === 0 && filter !== "all" && (
+            <Empty msg="Nenhum item nesta categoria." />
+          )}
+          {filteredCatalog.map((it) => (
+            <div key={it.item_key} className={`bg-card border border-border rounded-xl p-3 flex items-center gap-3 shadow-soft ${!it.available ? "opacity-60" : ""}`}>
+              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-secondary px-2 py-1 rounded-md whitespace-nowrap">
+                {TYPE_LABEL[it.item_type]}
+              </span>
+              <div className="flex-1 min-w-0 font-medium truncate">{it.label}</div>
+              <button
+                onClick={() => toggleBuiltIn(it)}
+                className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all active:scale-95 ${it.available ? "bg-tropical/15 text-tropical" : "bg-muted text-muted-foreground"}`}
+              >
+                {it.available ? "Disponível" : "Indisponível"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Extra DB products */}
+      {showExtras && filteredExtras.length > 0 && (
+        <div>
+          <h3 className="font-display text-lg font-bold mt-6 mb-3">Produtos extras</h3>
+          <div className="grid gap-3">
+            {filteredExtras.map((p) => (
+              <ExtraProductRow key={p.id} p={p} reload={reload} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExtraProductRow({ p, reload }: { p: DBProduct; reload: () => void }) {
+  const toggle = async () => {
+    await supabase.from("products").update({ available: !p.available }).eq("id", p.id);
+    toast.success(p.available ? "Marcado como indisponível" : "Marcado como disponível");
+    reload();
+  };
+  const remove = async () => {
+    if (!confirm("Remover este produto?")) return;
+    await supabase.from("products").delete().eq("id", p.id);
+    toast.success("Produto removido");
+    reload();
+  };
+  return (
+    <div className={`bg-card border border-border rounded-2xl p-4 flex items-center gap-3 shadow-soft ${!p.available ? "opacity-60" : ""}`}>
+      <div className="text-3xl">{p.emoji}</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold">{p.name}</div>
+        <div className="text-xs text-muted-foreground">{p.category} • {formatBRL(Number(p.price))}</div>
+        {p.flavors?.length > 0 && (
+          <div className="text-xs text-muted-foreground mt-1 truncate">Sabores: {p.flavors.join(", ")}</div>
+        )}
+      </div>
+      <button
+        onClick={toggle}
+        className={`text-xs px-3 py-1.5 rounded-full font-medium ${p.available ? "bg-tropical/15 text-tropical" : "bg-muted text-muted-foreground"}`}
+      >
+        {p.available ? "Disponível" : "Indisponível"}
+      </button>
+      <button onClick={remove} className="text-muted-foreground hover:text-destructive p-2" aria-label="Remover">
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+function ExtraProductForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<CategoryId>("picole");
   const [price, setPrice] = useState("");
@@ -267,92 +418,28 @@ function ProductsTab({ products, reload }: { products: DBProduct[]; reload: () =
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.from("products").insert({
-      name,
-      category,
-      price: Number(price),
-      emoji,
-      flavors: flavors.split(",").map(s => s.trim()).filter(Boolean),
+      name, category, price: Number(price), emoji,
+      flavors: flavors.split(",").map((s) => s.trim()).filter(Boolean),
       available: true,
     });
-    if (error) {
-      toast.error("Erro ao criar produto");
-      return;
-    }
+    if (error) { toast.error("Erro ao criar produto"); return; }
     toast.success("Produto criado!");
-    setName(""); setPrice(""); setFlavors(""); setShowForm(false);
-    reload();
-  };
-
-  const toggle = async (p: DBProduct) => {
-    await supabase.from("products").update({ available: !p.available }).eq("id", p.id);
-    toast.success(p.available ? "Marcado como indisponível" : "Marcado como disponível");
-    reload();
-  };
-
-  const remove = async (id: string) => {
-    if (!confirm("Remover este produto?")) return;
-    await supabase.from("products").delete().eq("id", id);
-    toast.success("Produto removido");
-    reload();
+    onCreated();
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-muted-foreground">
-          Produtos extras adicionados pelo admin (o cardápio padrão sempre fica visível).
-        </p>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-medium px-4 py-2 rounded-lg shadow-soft active:scale-95"
-        >
-          <Plus className="w-4 h-4" /> Novo produto
-        </button>
-      </div>
-
-      {showForm && (
-        <form onSubmit={create} className="bg-card border border-border rounded-2xl p-5 mb-4 shadow-soft grid sm:grid-cols-2 gap-3">
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" className="px-3 py-2 rounded-lg border border-border bg-background" />
-          <select value={category} onChange={(e) => setCategory(e.target.value as CategoryId)} className="px-3 py-2 rounded-lg border border-border bg-background">
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <input required value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Preço (ex: 12.50)" type="number" step="0.01" className="px-3 py-2 rounded-lg border border-border bg-background" />
-          <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="Emoji" className="px-3 py-2 rounded-lg border border-border bg-background" />
-          <input value={flavors} onChange={(e) => setFlavors(e.target.value)} placeholder="Sabores (separados por vírgula)" className="sm:col-span-2 px-3 py-2 rounded-lg border border-border bg-background" />
-          <button type="submit" className="sm:col-span-2 bg-gradient-purple text-primary-foreground font-medium py-2.5 rounded-lg active:scale-95">
-            Salvar produto
-          </button>
-        </form>
-      )}
-
-      {products.length === 0 ? (
-        <Empty msg="Nenhum produto extra cadastrado." />
-      ) : (
-        <div className="grid gap-3">
-          {products.map((p) => (
-            <div key={p.id} className={`bg-card border border-border rounded-2xl p-4 flex items-center gap-3 shadow-soft ${!p.available ? "opacity-60" : ""}`}>
-              <div className="text-3xl">{p.emoji}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold">{p.name}</div>
-                <div className="text-xs text-muted-foreground">{p.category} • {formatBRL(Number(p.price))}</div>
-                {p.flavors?.length > 0 && (
-                  <div className="text-xs text-muted-foreground mt-1 truncate">Sabores: {p.flavors.join(", ")}</div>
-                )}
-              </div>
-              <button
-                onClick={() => toggle(p)}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium ${p.available ? "bg-tropical/15 text-tropical" : "bg-muted text-muted-foreground"}`}
-              >
-                {p.available ? "Disponível" : "Indisponível"}
-              </button>
-              <button onClick={() => remove(p.id)} className="text-muted-foreground hover:text-destructive p-2" aria-label="Remover">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <form onSubmit={create} className="bg-card border border-border rounded-2xl p-5 shadow-soft grid sm:grid-cols-2 gap-3">
+      <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" className="px-3 py-2 rounded-lg border border-border bg-background" />
+      <select value={category} onChange={(e) => setCategory(e.target.value as CategoryId)} className="px-3 py-2 rounded-lg border border-border bg-background">
+        {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>
+      <input required value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Preço (ex: 12.50)" type="number" step="0.01" className="px-3 py-2 rounded-lg border border-border bg-background" />
+      <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="Emoji" className="px-3 py-2 rounded-lg border border-border bg-background" />
+      <input value={flavors} onChange={(e) => setFlavors(e.target.value)} placeholder="Sabores (separados por vírgula)" className="sm:col-span-2 px-3 py-2 rounded-lg border border-border bg-background" />
+      <button type="submit" className="sm:col-span-2 bg-gradient-purple text-primary-foreground font-medium py-2.5 rounded-lg active:scale-95">
+        Salvar produto
+      </button>
+    </form>
   );
 }
 
