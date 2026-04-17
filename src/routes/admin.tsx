@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, CategoryId } from "@/data/menu";
 import { formatBRL } from "@/contexts/CartContext";
+import { buildCatalogItems, useAvailability, setItemAvailability, AvailabilityItem, AvailabilityType } from "@/hooks/useAvailability";
 import { toast } from "sonner";
-import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp } from "lucide-react";
+import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search } from "lucide-react";
 
 const ADMIN_PASSWORD = "admin123";
 const STORAGE_KEY = "acai_admin_authed";
@@ -174,9 +175,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-card border border-border rounded-xl p-1 w-fit">
+        <div className="flex gap-1 mb-6 bg-card border border-border rounded-xl p-1 w-fit flex-wrap">
           <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos</TabBtn>
-          <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Produtos</TabBtn>
+          <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Cardápio</TabBtn>
           <TabBtn active={tab === "reports"} onClick={() => setTab("reports")}>Mais Vendidos</TabBtn>
         </div>
 
@@ -185,7 +186,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         ) : tab === "orders" ? (
           <OrdersTab orders={orders} />
         ) : tab === "products" ? (
-          <ProductsTab products={products} reload={load} />
+          <CatalogTab extraProducts={products} reload={load} />
         ) : (
           <ReportsTab top={topSellers} />
         )}
