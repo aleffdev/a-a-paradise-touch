@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as CardapioRouteImport } from './routes/cardapio'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SucessoOrderNumberRouteImport } from './routes/sucesso.$orderNumber'
 import { Route as CategoriaCategoryIdRouteImport } from './routes/categoria.$categoryId'
@@ -23,6 +24,11 @@ const CarrinhoRoute = CarrinhoRouteImport.update({
 const CardapioRoute = CardapioRouteImport.update({
   id: '/cardapio',
   path: '/cardapio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,7 @@ const CategoriaCategoryIdRoute = CategoriaCategoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
@@ -67,6 +76,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/cardapio'
     | '/carrinho'
     | '/categoria/$categoryId'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/cardapio'
     | '/carrinho'
     | '/categoria/$categoryId'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/cardapio'
     | '/carrinho'
     | '/categoria/$categoryId'
@@ -89,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CardapioRoute: typeof CardapioRoute
   CarrinhoRoute: typeof CarrinhoRoute
   CategoriaCategoryIdRoute: typeof CategoriaCategoryIdRoute
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/cardapio'
       fullPath: '/cardapio'
       preLoaderRoute: typeof CardapioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -137,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CardapioRoute: CardapioRoute,
   CarrinhoRoute: CarrinhoRoute,
   CategoriaCategoryIdRoute: CategoriaCategoryIdRoute,
