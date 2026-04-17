@@ -9,38 +9,128 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CarrinhoRouteImport } from './routes/carrinho'
+import { Route as CardapioRouteImport } from './routes/cardapio'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SucessoOrderNumberRouteImport } from './routes/sucesso.$orderNumber'
+import { Route as CategoriaCategoryIdRouteImport } from './routes/categoria.$categoryId'
 
+const CarrinhoRoute = CarrinhoRouteImport.update({
+  id: '/carrinho',
+  path: '/carrinho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CardapioRoute = CardapioRouteImport.update({
+  id: '/cardapio',
+  path: '/cardapio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SucessoOrderNumberRoute = SucessoOrderNumberRouteImport.update({
+  id: '/sucesso/$orderNumber',
+  path: '/sucesso/$orderNumber',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriaCategoryIdRoute = CategoriaCategoryIdRouteImport.update({
+  id: '/categoria/$categoryId',
+  path: '/categoria/$categoryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/cardapio': typeof CardapioRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
+  '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/cardapio': typeof CardapioRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
+  '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/cardapio': typeof CardapioRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
+  '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/cardapio'
+    | '/carrinho'
+    | '/categoria/$categoryId'
+    | '/sucesso/$orderNumber'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/cardapio'
+    | '/carrinho'
+    | '/categoria/$categoryId'
+    | '/sucesso/$orderNumber'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/cardapio'
+    | '/carrinho'
+    | '/categoria/$categoryId'
+    | '/sucesso/$orderNumber'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  CardapioRoute: typeof CardapioRoute
+  CarrinhoRoute: typeof CarrinhoRoute
+  CategoriaCategoryIdRoute: typeof CategoriaCategoryIdRoute
+  SucessoOrderNumberRoute: typeof SucessoOrderNumberRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/carrinho': {
+      id: '/carrinho'
+      path: '/carrinho'
+      fullPath: '/carrinho'
+      preLoaderRoute: typeof CarrinhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cardapio': {
+      id: '/cardapio'
+      path: '/cardapio'
+      fullPath: '/cardapio'
+      preLoaderRoute: typeof CardapioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +138,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sucesso/$orderNumber': {
+      id: '/sucesso/$orderNumber'
+      path: '/sucesso/$orderNumber'
+      fullPath: '/sucesso/$orderNumber'
+      preLoaderRoute: typeof SucessoOrderNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categoria/$categoryId': {
+      id: '/categoria/$categoryId'
+      path: '/categoria/$categoryId'
+      fullPath: '/categoria/$categoryId'
+      preLoaderRoute: typeof CategoriaCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  CardapioRoute: CardapioRoute,
+  CarrinhoRoute: CarrinhoRoute,
+  CategoriaCategoryIdRoute: CategoriaCategoryIdRoute,
+  SucessoOrderNumberRoute: SucessoOrderNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
