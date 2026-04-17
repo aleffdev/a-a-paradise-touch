@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { SimpleProduct } from "@/data/menu";
 import { useCart, formatBRL } from "@/contexts/CartContext";
+import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
 import { Check, Minus, Plus } from "lucide-react";
 
 export function FlavorPicker({ product }: { product: SimpleProduct }) {
   const { addItem } = useCart();
+  const { isAvailable } = useAvailability();
   const [flavor, setFlavor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
+
+  const productAvailable = isAvailable(`product:${product.id}`);
 
   const handleAdd = () => {
     if (!flavor) {
@@ -26,6 +30,25 @@ export function FlavorPicker({ product }: { product: SimpleProduct }) {
     setQty(1);
   };
 
+  if (!productAvailable) {
+    return (
+      <div className="rounded-3xl bg-card border border-dashed border-border p-6 shadow-soft opacity-60">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-3xl grayscale">{product.emoji}</div>
+            <h3 className="font-display text-2xl font-bold mt-1">{product.name}</h3>
+            <p className="text-muted-foreground text-sm mt-1">Indisponível no momento</p>
+          </div>
+          <span className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-full">
+            Indisponível
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const availableFlavors = product.flavors.filter((f) => isAvailable(`flavor:${product.id}:${f}`));
+
   return (
     <div className="rounded-3xl bg-card border border-border p-6 shadow-soft">
       <div className="flex items-start justify-between gap-4 mb-5">
@@ -37,25 +60,29 @@ export function FlavorPicker({ product }: { product: SimpleProduct }) {
       </div>
 
       <p className="text-sm text-muted-foreground mb-3">Escolha o sabor:</p>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {product.flavors.map((f) => {
-          const active = flavor === f;
-          return (
-            <button
-              key={f}
-              onClick={() => setFlavor(f)}
-              className={`px-4 py-2.5 rounded-full font-medium transition-all active:scale-95 inline-flex items-center gap-2 ${
-                active
-                  ? "bg-primary text-primary-foreground shadow-soft"
-                  : "bg-secondary text-secondary-foreground hover:bg-accent"
-              }`}
-            >
-              {active && <Check className="w-4 h-4" />}
-              {f}
-            </button>
-          );
-        })}
-      </div>
+      {availableFlavors.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic mb-6">Nenhum sabor disponível no momento.</p>
+      ) : (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {availableFlavors.map((f) => {
+            const active = flavor === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setFlavor(f)}
+                className={`px-4 py-2.5 rounded-full font-medium transition-all active:scale-95 inline-flex items-center gap-2 ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-soft"
+                    : "bg-secondary text-secondary-foreground hover:bg-accent"
+                }`}
+              >
+                {active && <Check className="w-4 h-4" />}
+                {f}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
@@ -77,7 +104,8 @@ export function FlavorPicker({ product }: { product: SimpleProduct }) {
         </div>
         <button
           onClick={handleAdd}
-          className="flex-1 bg-gradient-purple text-primary-foreground font-bold py-3.5 rounded-2xl shadow-soft hover:shadow-glow active:scale-[0.99] transition-all"
+          disabled={availableFlavors.length === 0}
+          className="flex-1 bg-gradient-purple text-primary-foreground font-bold py-3.5 rounded-2xl shadow-soft hover:shadow-glow active:scale-[0.99] transition-all disabled:opacity-50"
         >
           Adicionar — {formatBRL(product.price * qty)}
         </button>

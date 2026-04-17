@@ -2,13 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ACAI_SIZES, ACAI_BASES, ACAI_TOPPINGS, ACAI_CALDAS, AcaiSize } from "@/data/menu";
 import { useCart, formatBRL } from "@/contexts/CartContext";
+import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
 import { Plus, Minus, Check } from "lucide-react";
 
 export function AcaiBuilder() {
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const [size, setSize] = useState<AcaiSize>(ACAI_SIZES[1]);
+  const { isAvailable } = useAvailability();
+  const availableSizes = ACAI_SIZES.filter((s) => isAvailable(`size:${s.id}`));
+  const availableToppings = ACAI_TOPPINGS.filter((t) => isAvailable(`topping:${t}`));
+  const availableCaldas = ACAI_CALDAS.filter((c) => isAvailable(`calda:${c}`));
+  const initialSize = availableSizes.find((s) => s.id === "M") ?? availableSizes[0] ?? ACAI_SIZES[1];
+  const [size, setSize] = useState<AcaiSize>(initialSize);
   const [bases, setBases] = useState<Record<string, number>>({ Açaí: ACAI_SIZES[1].scoops, Sorvete: 0 });
   const [toppings, setToppings] = useState<string[]>([]);
   const [calda, setCalda] = useState<string | null>(null);
@@ -68,7 +74,7 @@ export function AcaiBuilder() {
       {/* Sizes */}
       <Section title="1. Escolha o tamanho">
         <div className="grid grid-cols-3 gap-3">
-          {ACAI_SIZES.map((s) => (
+          {availableSizes.map((s) => (
             <button
               key={s.id}
               onClick={() => changeSize(s)}
@@ -129,7 +135,10 @@ export function AcaiBuilder() {
       {/* Toppings */}
       <Section title="3. Acompanhamentos" subtitle="Selecione os que desejar (uma vez cada)">
         <div className="flex flex-wrap gap-2">
-          {ACAI_TOPPINGS.map((t) => {
+          {availableToppings.length === 0 && (
+            <p className="text-sm text-muted-foreground italic">Sem acompanhamentos disponíveis no momento.</p>
+          )}
+          {availableToppings.map((t) => {
             const active = toppings.includes(t);
             return (
               <button
@@ -160,7 +169,7 @@ export function AcaiBuilder() {
           >
             Sem calda
           </button>
-          {ACAI_CALDAS.map((c) => (
+          {availableCaldas.map((c) => (
             <button
               key={c}
               onClick={() => setCalda(c)}
