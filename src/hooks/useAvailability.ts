@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CATEGORIES, SIMPLE_PRODUCTS, ACAI_SIZES, ACAI_TOPPINGS, ACAI_CALDAS } from "@/data/menu";
+import { CATEGORIES, SIMPLE_PRODUCTS, ACAI_SIZES, ACAI_TOPPINGS, ACAI_CALDAS, ICE_CREAM_FLAVORS } from "@/data/menu";
 
 export type AvailabilityType = "category" | "product" | "flavor" | "size" | "topping" | "calda";
 
@@ -26,6 +26,9 @@ export function buildCatalogItems(): AvailabilityItem[] {
   );
 
   // Toppings & caldas
+  ICE_CREAM_FLAVORS.forEach((f) =>
+    items.push({ item_key: `icecream:${f}`, item_type: "flavor", label: `Sorvete do açaí — ${f}`, available: true })
+  );
   ACAI_TOPPINGS.forEach((t) =>
     items.push({ item_key: `topping:${t}`, item_type: "topping", label: `Topping: ${t}`, available: true })
   );
