@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+
+const ORDER_TYPE_KEY = "totem:orderType";
 
 export type OrderType = "local" | "viagem";
 
