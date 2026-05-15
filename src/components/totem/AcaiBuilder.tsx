@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ACAI_SIZES, ACAI_BASES, ACAI_TOPPINGS, ACAI_CALDAS, AcaiSize } from "@/data/menu";
+import { ACAI_SIZES, ACAI_BASES, ACAI_TOPPINGS, ACAI_CALDAS, ICE_CREAM_FLAVORS, AcaiSize } from "@/data/menu";
 import { useCart, formatBRL } from "@/contexts/CartContext";
 import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
@@ -11,21 +11,27 @@ export function AcaiBuilder() {
   const { addItem } = useCart();
   const { isAvailable } = useAvailability();
   const availableSizes = ACAI_SIZES.filter((s) => isAvailable(`size:${s.id}`));
+  const availableIceCreamFlavors = ICE_CREAM_FLAVORS.filter((f) => isAvailable(`icecream:${f}`));
   const availableToppings = ACAI_TOPPINGS.filter((t) => isAvailable(`topping:${t}`));
   const availableCaldas = ACAI_CALDAS.filter((c) => isAvailable(`calda:${c}`));
   const initialSize = availableSizes.find((s) => s.id === "M") ?? availableSizes[0] ?? ACAI_SIZES[1];
   const [size, setSize] = useState<AcaiSize>(initialSize);
   const [bases, setBases] = useState<Record<string, number>>({ Açaí: ACAI_SIZES[1].scoops, Sorvete: 0 });
+  const [iceCreamScoops, setIceCreamScoops] = useState<Record<string, number>>({});
   const [toppings, setToppings] = useState<string[]>([]);
   const [calda, setCalda] = useState<string | null>(null);
 
   const totalScoops = Object.values(bases).reduce((a, b) => a + b, 0);
   const remaining = size.scoops - totalScoops;
+  const selectedIceCreamScoops = Object.values(iceCreamScoops).reduce((a, b) => a + b, 0);
+  const iceCreamTotal = bases.Sorvete ?? 0;
+  const iceCreamRemaining = iceCreamTotal - selectedIceCreamScoops;
 
   const changeSize = (s: AcaiSize) => {
     setSize(s);
     // reset bases proportionally → all to açaí
     setBases({ Açaí: s.scoops, Sorvete: 0 });
+    setIceCreamScoops({});
   };
 
   const adjustBase = (base: string, delta: number) => {
@@ -33,6 +39,21 @@ export function AcaiBuilder() {
       const next = { ...prev, [base]: Math.max(0, (prev[base] ?? 0) + delta) };
       const sum = Object.values(next).reduce((a, b) => a + b, 0);
       if (sum > size.scoops) return prev; // cap
+      if (base === "Sorvete") {
+        const nextSorvete = next.Sorvete ?? 0;
+        setIceCreamScoops((current) => trimScoopsToLimit(current, nextSorvete));
+      }
+      return next;
+    });
+  };
+
+  const adjustIceCreamFlavor = (flavor: string, delta: number) => {
+    setIceCreamScoops((prev) => {
+      const current = prev[flavor] ?? 0;
+      if (delta > 0 && iceCreamRemaining <= 0) return prev;
+      const nextValue = Math.max(0, current + delta);
+      const next = { ...prev, [flavor]: nextValue };
+      if (nextValue === 0) delete next[flavor];
       return next;
     });
   };
@@ -46,12 +67,21 @@ export function AcaiBuilder() {
       toast.error(`Selecione exatamente ${size.scoops} bolas (faltam ${remaining})`);
       return;
     }
+    if (iceCreamRemaining !== 0) {
+      toast.error(`Escolha os sabores das ${iceCreamTotal} bola(s) de sorvete`);
+      return;
+    }
     const baseDesc = Object.entries(bases)
+      .filter(([, n]) => n > 0)
+      .map(([k, n]) => `${n}× ${k}`)
+      .join(", ");
+    const sorveteDesc = Object.entries(iceCreamScoops)
       .filter(([, n]) => n > 0)
       .map(([k, n]) => `${n}× ${k}`)
       .join(", ");
     const description = [
       baseDesc,
+      sorveteDesc ? `Sorvete: ${sorveteDesc}` : null,
       toppings.length ? `Acomp.: ${toppings.join(", ")}` : null,
       calda ? `Calda: ${calda}` : null,
     ]
