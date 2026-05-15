@@ -5,6 +5,7 @@ import { useCart } from "@/contexts/CartContext";
 import { TotemHeader } from "@/components/totem/TotemHeader";
 import { AcaiBuilder } from "@/components/totem/AcaiBuilder";
 import { FlavorPicker } from "@/components/totem/FlavorPicker";
+import { useAvailability } from "@/hooks/useAvailability";
 import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/categoria/$categoryId")({
@@ -15,6 +16,7 @@ function CategoryScreen() {
   const { categoryId } = Route.useParams();
   const { orderType } = useCart();
   const navigate = useNavigate();
+  const { isAvailable } = useAvailability();
 
   useEffect(() => {
     if (!orderType) navigate({ to: "/" });
@@ -65,7 +67,7 @@ function CategoryScreen() {
         ) : (
           <div className="space-y-5">
             {products.map((p) => (
-              <FlavorPicker key={p.id} product={p} />
+              <FlavorPicker key={p.id} product={p} isAvailable={isAvailable} />
             ))}
           </div>
         )}
