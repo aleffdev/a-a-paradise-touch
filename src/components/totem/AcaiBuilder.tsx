@@ -6,6 +6,18 @@ import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
 import { Plus, Minus, Check } from "lucide-react";
 
+function trimScoopsToLimit(scoops: Record<string, number>, limit: number) {
+  let used = 0;
+  const next: Record<string, number> = {};
+  for (const [flavor, qty] of Object.entries(scoops)) {
+    const allowed = Math.min(qty, Math.max(0, limit - used));
+    if (allowed > 0) next[flavor] = allowed;
+    used += allowed;
+    if (used >= limit) break;
+  }
+  return next;
+}
+
 export function AcaiBuilder() {
   const navigate = useNavigate();
   const { addItem } = useCart();
