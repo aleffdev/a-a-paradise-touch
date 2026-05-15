@@ -63,7 +63,7 @@ export function useAvailability() {
   useEffect(() => {
     load();
     const channel = supabase
-      .channel("item_availability_changes")
+      .channel(`item_availability_changes_${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "item_availability" }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
