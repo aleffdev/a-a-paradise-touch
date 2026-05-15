@@ -142,13 +142,13 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const pendingOrders = orders.filter((o) => o.status !== "pago");
   const historyOrders = orders.filter((o) => o.status === "pago");
 
-  const todayRevenue = orders
+  const todayRevenue = historyOrders
     .filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString())
     .reduce((s, o) => s + Number(o.total), 0);
 
   // top sellers
   const tally = new Map<string, { name: string; qty: number }>();
-  orders.forEach((o) => {
+  historyOrders.forEach((o) => {
     o.items?.forEach((it) => {
       const k = it.productKey ?? it.name;
       const cur = tally.get(k) ?? { name: it.name, qty: 0 };
