@@ -30,14 +30,11 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [orderType, setOrderTypeState] = useState<OrderType | null>(null);
-
-  // Hydrate orderType from sessionStorage on mount (survives client-side navigation/SSR)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const [orderType, setOrderTypeState] = useState<OrderType | null>(() => {
+    if (typeof window === "undefined") return null;
     const saved = window.sessionStorage.getItem(ORDER_TYPE_KEY);
-    if (saved === "local" || saved === "viagem") setOrderTypeState(saved);
-  }, []);
+    return saved === "local" || saved === "viagem" ? saved : null;
+  });
 
   const setOrderType = useCallback((t: OrderType) => {
     setOrderTypeState(t);
