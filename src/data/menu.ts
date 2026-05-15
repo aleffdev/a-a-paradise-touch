@@ -45,6 +45,17 @@ export const ACAI_SIZES: AcaiSize[] = [
 
 export const ACAI_BASES = ["Açaí", "Sorvete"] as const;
 
+export const ICE_CREAM_FLAVORS = [
+  "Morango",
+  "Cupuaçu",
+  "Chocolate",
+  "Prestígio",
+  "Ninho Trufado",
+  "Ferrero Rocher",
+  "Flocos",
+  "Laka",
+];
+
 export const ACAI_TOPPINGS = [
   "Paçoca", "Amendoim", "Granola", "Sucrilhos",
   "Leite em pó", "Banana", "Abacaxi",
