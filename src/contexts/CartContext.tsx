@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+
+const ORDER_TYPE_KEY = "totem:orderType";
 
 export type OrderType = "local" | "viagem";
 
@@ -28,7 +30,16 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [orderType, setOrderType] = useState<OrderType | null>(null);
+  const [orderType, setOrderTypeState] = useState<OrderType | null>(() => {
+    if (typeof window === "undefined") return null;
+    const saved = window.sessionStorage.getItem(ORDER_TYPE_KEY);
+    return saved === "local" || saved === "viagem" ? saved : null;
+  });
+
+  const setOrderType = useCallback((t: OrderType) => {
+    setOrderTypeState(t);
+    if (typeof window !== "undefined") window.sessionStorage.setItem(ORDER_TYPE_KEY, t);
+  }, []);
 
   const addItem: CartContextValue["addItem"] = useCallback((item) => {
     setItems((prev) => [
