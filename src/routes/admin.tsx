@@ -360,9 +360,6 @@ function paymentLabel(method: string | null) {
   const labels: Record<string, string> = { dinheiro: "dinheiro", pix: "Pix", debito: "cartão de débito", credito: "cartão de crédito" };
   return labels[method ?? ""] ?? "não informado";
 }
-    </div>
-  );
-}
 
 const TYPE_LABEL: Record<AvailabilityType, string> = {
   category: "Categoria",
