@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ACAI_SIZES, ACAI_BASES, ACAI_TOPPINGS, ACAI_CALDAS, ICE_CREAM_FLAVORS, AcaiSize } from "@/data/menu";
 import { useCart, formatBRL } from "@/contexts/CartContext";
-import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
 import { Plus, Minus, Check } from "lucide-react";
 
@@ -18,10 +17,9 @@ function trimScoopsToLimit(scoops: Record<string, number>, limit: number) {
   return next;
 }
 
-export function AcaiBuilder() {
+export function AcaiBuilder({ isAvailable }: { isAvailable: (key: string) => boolean }) {
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const { isAvailable } = useAvailability();
   const availableSizes = ACAI_SIZES.filter((s) => isAvailable(`size:${s.id}`));
   const availableIceCreamFlavors = ICE_CREAM_FLAVORS.filter((f) => isAvailable(`icecream:${f}`));
   const availableToppings = ACAI_TOPPINGS.filter((t) => isAvailable(`topping:${t}`));
