@@ -162,6 +162,50 @@ export function AcaiBuilder() {
         </div>
       </Section>
 
+      {iceCreamTotal > 0 && (
+        <Section
+          title="2.1 Escolha os sabores do sorvete"
+          subtitle={iceCreamRemaining === 0 ? "✓ Sabores completos" : `${iceCreamRemaining} bola(s) de sorvete restantes`}
+        >
+          {availableIceCreamFlavors.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">Nenhum sabor de sorvete disponível no momento.</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {availableIceCreamFlavors.map((flavor) => {
+                const qty = iceCreamScoops[flavor] ?? 0;
+                return (
+                  <div key={flavor} className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold">{flavor}</div>
+                      <div className="text-sm text-muted-foreground">{qty} bola(s)</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => adjustIceCreamFlavor(flavor, -1)}
+                        disabled={qty === 0}
+                        className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center disabled:opacity-30 active:scale-95"
+                        aria-label={`Remover ${flavor}`}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-7 text-center font-bold">{qty}</span>
+                      <button
+                        onClick={() => adjustIceCreamFlavor(flavor, 1)}
+                        disabled={iceCreamRemaining === 0}
+                        className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-30 active:scale-95"
+                        aria-label={`Adicionar ${flavor}`}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Section>
+      )}
+
       {/* Toppings */}
       <Section title="3. Acompanhamentos" subtitle="Selecione os que desejar (uma vez cada)">
         <div className="flex flex-wrap gap-2">
