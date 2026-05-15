@@ -236,18 +236,78 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-function OrdersTab({ orders }: { orders: DBOrder[] }) {
+function OrdersTab({ orders, onPaid }: { orders: DBOrder[]; onPaid: () => void }) {
+  const [search, setSearch] = useState("");
+
+  const filtered = orders.filter((o) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      o.customer_name?.toLowerCase().includes(q) ||
+      String(o.order_number).includes(q) ||
+      o.items?.some((it) => it.name.toLowerCase().includes(q))
+    );
+  });
+
   if (orders.length === 0) {
-    return <Empty msg="Nenhum pedido ainda." />;
+    return <Empty msg="Nenhum pedido pendente agora." />;
   }
   return (
-    <div className="space-y-3">
-      {orders.map((o) => (
-        <div key={o.id} className="bg-card border border-border rounded-2xl p-5 shadow-soft">
+    <div className="space-y-4">
+      <SearchBox value={search} onChange={setSearch} placeholder="Buscar por nome, pedido ou item..." />
+      {filtered.length === 0 && <Empty msg="Nenhum pedido encontrado para essa busca." />}
+      {filtered.map((o) => (
+        <OrderCard key={o.id} order={o} onPaid={onPaid} />
+      ))}
+    </div>
+  );
+}
+
+function HistoryTab({ orders }: { orders: DBOrder[] }) {
+  const [search, setSearch] = useState("");
+  const filtered = orders.filter((o) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return o.customer_name?.toLowerCase().includes(q) || String(o.order_number).includes(q);
+  });
+  if (orders.length === 0) return <Empty msg="Histórico vazio. Os pedidos pagos aparecerão aqui." />;
+  return (
+    <div className="space-y-4">
+      <SearchBox value={search} onChange={setSearch} placeholder="Buscar no histórico..." />
+      {filtered.map((o) => <OrderCard key={o.id} order={o} history />)}
+    </div>
+  );
+}
+
+function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative bg-card border border-border rounded-2xl shadow-soft">
+      <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full pl-12 pr-4 py-4 rounded-2xl bg-transparent outline-none" />
+    </div>
+  );
+}
+
+function OrderCard({ order: o, onPaid, history = false }: { order: DBOrder; onPaid?: () => void; history?: boolean }) {
+  const [payment, setPayment] = useState(o.payment_method ?? "dinheiro");
+  const [saving, setSaving] = useState(false);
+
+  const markPaid = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("orders").update({ status: "pago", payment_method: payment }).eq("id", o.id);
+    setSaving(false);
+    if (error) { toast.error("Erro ao marcar como pago"); return; }
+    toast.success("Pedido enviado para o histórico");
+    onPaid?.();
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-5 shadow-soft">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-display text-2xl font-bold text-primary">#{o.order_number}</span>
+                <span className="text-sm font-bold text-foreground">{o.customer_name || "Cliente"}</span>
                 <span className="text-xs px-2 py-1 rounded-full bg-tropical/15 text-tropical font-medium">
                   {o.order_type === "local" ? "🪑 Local" : "🛍️ Viagem"}
                 </span>
@@ -263,14 +323,43 @@ function OrdersTab({ orders }: { orders: DBOrder[] }) {
           </div>
           <div className="mt-3 pt-3 border-t border-border space-y-1">
             {o.items?.map((it, i) => (
-              <div key={i} className="text-sm flex justify-between gap-3">
-                <span className="text-foreground">{it.quantity}× {it.name}</span>
-                <span className="text-muted-foreground">{formatBRL(it.price * it.quantity)}</span>
+              <div key={i} className="text-sm flex justify-between gap-3 items-start">
+                <span className="text-foreground">
+                  {it.quantity}× {it.name}
+                  {it.description && <span className="block text-xs text-muted-foreground mt-0.5">{it.description}</span>}
+                </span>
+                <span className="text-muted-foreground whitespace-nowrap">{formatBRL(it.price * it.quantity)}</span>
               </div>
             ))}
           </div>
-        </div>
-      ))}
+          {!history ? (
+            <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row gap-3 sm:items-center">
+              <label className="flex-1 text-sm font-medium">
+                Forma de pagamento
+                <select value={payment} onChange={(e) => setPayment(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3">
+                  <option value="dinheiro">Dinheiro</option>
+                  <option value="pix">Pix</option>
+                  <option value="debito">Cartão de débito</option>
+                  <option value="credito">Cartão de crédito</option>
+                </select>
+              </label>
+              <button onClick={markPaid} disabled={saving} className="inline-flex items-center justify-center gap-2 bg-gradient-tropical text-tropical-foreground font-bold px-5 py-4 rounded-xl shadow-soft disabled:opacity-50 active:scale-95">
+                <CreditCard className="w-5 h-5" /> {saving ? "Salvando..." : "Pago / enviar ao histórico"}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-border text-sm text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-tropical" /> Pago em {paymentLabel(o.payment_method)}
+            </div>
+          )}
+    </div>
+  );
+}
+
+function paymentLabel(method: string | null) {
+  const labels: Record<string, string> = { dinheiro: "dinheiro", pix: "Pix", debito: "cartão de débito", credito: "cartão de crédito" };
+  return labels[method ?? ""] ?? "não informado";
+}
     </div>
   );
 }
