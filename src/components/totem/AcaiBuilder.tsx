@@ -28,7 +28,7 @@ export function AcaiBuilder() {
   const availableCaldas = ACAI_CALDAS.filter((c) => isAvailable(`calda:${c}`));
   const initialSize = availableSizes.find((s) => s.id === "M") ?? availableSizes[0] ?? ACAI_SIZES[1];
   const [size, setSize] = useState<AcaiSize>(initialSize);
-  const [bases, setBases] = useState<Record<string, number>>({ Açaí: ACAI_SIZES[1].scoops, Sorvete: 0 });
+  const [bases, setBases] = useState<Record<string, number>>({ Açaí: initialSize.scoops, Sorvete: 0 });
   const [iceCreamScoops, setIceCreamScoops] = useState<Record<string, number>>({});
   const [toppings, setToppings] = useState<string[]>([]);
   const [calda, setCalda] = useState<string | null>(null);
@@ -273,10 +273,14 @@ export function AcaiBuilder() {
       <div className="sticky bottom-4 z-30">
         <button
           onClick={handleAdd}
-          disabled={remaining !== 0}
+          disabled={remaining !== 0 || iceCreamRemaining !== 0}
           className="w-full bg-gradient-purple text-primary-foreground font-bold text-lg py-5 rounded-2xl shadow-glow disabled:opacity-50 disabled:shadow-none active:scale-[0.99] transition-all flex items-center justify-center gap-3"
         >
-          {remaining === 0 ? `Adicionar — ${formatBRL(size.price)}` : `Faltam ${remaining} bolas`}
+          {remaining !== 0
+            ? `Faltam ${remaining} bolas`
+            : iceCreamRemaining !== 0
+              ? `Faltam ${iceCreamRemaining} sabores de sorvete`
+              : `Adicionar — ${formatBRL(size.price)}`}
         </button>
       </div>
     </div>
