@@ -5,7 +5,8 @@ import { CATEGORIES, CategoryId } from "@/data/menu";
 import { formatBRL } from "@/contexts/CartContext";
 import { buildCatalogItems, useAvailability, setItemAvailability, AvailabilityItem, AvailabilityType } from "@/hooks/useAvailability";
 import { toast } from "sonner";
-import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search } from "lucide-react";
+import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2 } from "lucide-react";
+import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 
 const ADMIN_PASSWORD = "admin123";
 const STORAGE_KEY = "acai_admin_authed";
@@ -28,10 +29,12 @@ interface DBProduct {
 interface DBOrder {
   id: string;
   order_number: number;
+  customer_name: string;
   order_type: string;
-  items: { name: string; quantity: number; price: number; productKey: string }[];
+  items: { name: string; quantity: number; price: number; productKey: string; description?: string }[];
   total: number;
   status: string;
+  payment_method: string | null;
   created_at: string;
 }
 
@@ -111,7 +114,7 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"orders" | "products" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "history" | "products" | "reports">("orders");
   const [orders, setOrders] = useState<DBOrder[]>([]);
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +122,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const load = async () => {
     setLoading(true);
     const [o, p] = await Promise.all([
-      supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("orders").select("id, order_number, customer_name, order_type, items, total, status, payment_method, created_at").order("created_at", { ascending: false }).limit(200),
       supabase.from("products").select("*").order("created_at", { ascending: false }),
     ]);
     if (o.data) setOrders(o.data as unknown as DBOrder[]);
@@ -127,7 +130,17 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("admin_orders_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const pendingOrders = orders.filter((o) => o.status !== "pago");
+  const historyOrders = orders.filter((o) => o.status === "pago");
 
   const todayRevenue = orders
     .filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString())
@@ -146,11 +159,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="min-h-screen bg-secondary">
-      <header className="bg-card border-b border-border sticky top-0 z-30">
+      <header className="bg-card/95 backdrop-blur border-b border-border sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-xl font-bold">Painel Admin</h1>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Açaí do Paraíso" width={90} height={64} className="h-14 w-20 object-contain" />
+            <div>
+            <h1 className="font-display text-xl font-bold">Painel Administrativo</h1>
             <p className="text-xs text-muted-foreground">Açaí do Paraíso</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2">
@@ -169,14 +185,15 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* KPI cards */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
-          <KpiCard icon={<ShoppingBag className="w-5 h-5" />} label="Pedidos hoje" value={String(orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length)} />
+          <KpiCard icon={<ShoppingBag className="w-5 h-5" />} label="Pendentes" value={String(pendingOrders.length)} />
           <KpiCard icon={<TrendingUp className="w-5 h-5" />} label="Receita do dia" value={formatBRL(todayRevenue)} />
-          <KpiCard icon={<BarChart3 className="w-5 h-5" />} label="Total de pedidos" value={String(orders.length)} />
+          <KpiCard icon={<History className="w-5 h-5" />} label="Histórico" value={String(historyOrders.length)} />
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-card border border-border rounded-xl p-1 w-fit flex-wrap">
-          <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos</TabBtn>
+          <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos pendentes</TabBtn>
+          <TabBtn active={tab === "history"} onClick={() => setTab("history")}>Histórico</TabBtn>
           <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Cardápio</TabBtn>
           <TabBtn active={tab === "reports"} onClick={() => setTab("reports")}>Mais Vendidos</TabBtn>
         </div>
@@ -184,7 +201,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando...</div>
         ) : tab === "orders" ? (
-          <OrdersTab orders={orders} />
+          <OrdersTab orders={pendingOrders} onPaid={load} />
+        ) : tab === "history" ? (
+          <HistoryTab orders={historyOrders} />
         ) : tab === "products" ? (
           <CatalogTab extraProducts={products} reload={load} />
         ) : (
