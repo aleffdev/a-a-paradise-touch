@@ -41,28 +41,34 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          customer_name: string
           id: string
           items: Json
           order_number: number
           order_type: string
+          payment_method: string | null
           status: string
           total: number
         }
         Insert: {
           created_at?: string
+          customer_name?: string
           id?: string
           items: Json
           order_number?: number
           order_type: string
+          payment_method?: string | null
           status?: string
           total: number
         }
         Update: {
           created_at?: string
+          customer_name?: string
           id?: string
           items?: Json
           order_number?: number
           order_type?: string
+          payment_method?: string | null
           status?: string
           total?: number
         }

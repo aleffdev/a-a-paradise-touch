@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 import { ShoppingBag } from "lucide-react";
 import { useCart, formatBRL } from "@/contexts/CartContext";
 
@@ -14,7 +14,7 @@ export function TotemHeader({ showCart = true }: TotemHeaderProps) {
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-border">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Açaí do Paraíso" width={48} height={48} className="h-12 w-12 object-contain" />
+          <img src={logo} alt="Açaí do Paraíso" width={96} height={70} className="h-14 w-20 object-contain" />
           <div className="hidden sm:block">
             <h1 className="font-display text-xl font-bold text-primary leading-none">Açaí do Paraíso</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Sabor tropical, atendimento rápido</p>

@@ -14,14 +14,21 @@ function CartScreen() {
   const { items, total, updateQuantity, removeItem, orderType, clear } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [customerName, setCustomerName] = useState("");
 
   const finalize = async () => {
     if (items.length === 0) return;
+    const cleanName = customerName.trim().replace(/\s+/g, " ");
+    if (cleanName.length < 2) {
+      toast.error("Digite o nome do cliente para finalizar.");
+      return;
+    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase
         .from("orders")
         .insert({
+          customer_name: cleanName,
           order_type: orderType ?? "local",
           items: items as never,
           total,
@@ -118,9 +125,19 @@ function CartScreen() {
                 <span className="font-display text-xl font-bold">Total</span>
                 <span className="font-display text-3xl font-bold text-primary">{formatBRL(total)}</span>
               </div>
+              <label className="block mt-5 pt-5 border-t border-border">
+                <span className="text-sm font-semibold text-foreground">Nome do cliente</span>
+                <input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  maxLength={80}
+                  placeholder="Digite seu nome"
+                  className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-4 text-lg outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
               <button
                 onClick={finalize}
-                disabled={submitting}
+                disabled={submitting || customerName.trim().length < 2}
                 className="mt-6 w-full bg-gradient-purple text-primary-foreground font-bold text-lg py-5 rounded-2xl shadow-glow disabled:opacity-50 active:scale-[0.99] transition-all"
               >
                 {submitting ? "Enviando pedido..." : "Finalizar Pedido"}

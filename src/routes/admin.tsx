@@ -5,7 +5,8 @@ import { CATEGORIES, CategoryId } from "@/data/menu";
 import { formatBRL } from "@/contexts/CartContext";
 import { buildCatalogItems, useAvailability, setItemAvailability, AvailabilityItem, AvailabilityType } from "@/hooks/useAvailability";
 import { toast } from "sonner";
-import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search } from "lucide-react";
+import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2 } from "lucide-react";
+import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 
 const ADMIN_PASSWORD = "admin123";
 const STORAGE_KEY = "acai_admin_authed";
@@ -28,10 +29,12 @@ interface DBProduct {
 interface DBOrder {
   id: string;
   order_number: number;
+  customer_name: string;
   order_type: string;
-  items: { name: string; quantity: number; price: number; productKey: string }[];
+  items: { name: string; quantity: number; price: number; productKey: string; description?: string }[];
   total: number;
   status: string;
+  payment_method: string | null;
   created_at: string;
 }
 
@@ -111,7 +114,7 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"orders" | "products" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "history" | "products" | "reports">("orders");
   const [orders, setOrders] = useState<DBOrder[]>([]);
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +122,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const load = async () => {
     setLoading(true);
     const [o, p] = await Promise.all([
-      supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("orders").select("id, order_number, customer_name, order_type, items, total, status, payment_method, created_at").order("created_at", { ascending: false }).limit(200),
       supabase.from("products").select("*").order("created_at", { ascending: false }),
     ]);
     if (o.data) setOrders(o.data as unknown as DBOrder[]);
@@ -127,15 +130,25 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("admin_orders_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
-  const todayRevenue = orders
+  const pendingOrders = orders.filter((o) => o.status !== "pago");
+  const historyOrders = orders.filter((o) => o.status === "pago");
+
+  const todayRevenue = historyOrders
     .filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString())
     .reduce((s, o) => s + Number(o.total), 0);
 
   // top sellers
   const tally = new Map<string, { name: string; qty: number }>();
-  orders.forEach((o) => {
+  historyOrders.forEach((o) => {
     o.items?.forEach((it) => {
       const k = it.productKey ?? it.name;
       const cur = tally.get(k) ?? { name: it.name, qty: 0 };
@@ -146,11 +159,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="min-h-screen bg-secondary">
-      <header className="bg-card border-b border-border sticky top-0 z-30">
+      <header className="bg-card/95 backdrop-blur border-b border-border sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-xl font-bold">Painel Admin</h1>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Açaí do Paraíso" width={90} height={64} className="h-14 w-20 object-contain" />
+            <div>
+            <h1 className="font-display text-xl font-bold">Painel Administrativo</h1>
             <p className="text-xs text-muted-foreground">Açaí do Paraíso</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2">
@@ -169,14 +185,15 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* KPI cards */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
-          <KpiCard icon={<ShoppingBag className="w-5 h-5" />} label="Pedidos hoje" value={String(orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length)} />
+          <KpiCard icon={<ShoppingBag className="w-5 h-5" />} label="Pendentes" value={String(pendingOrders.length)} />
           <KpiCard icon={<TrendingUp className="w-5 h-5" />} label="Receita do dia" value={formatBRL(todayRevenue)} />
-          <KpiCard icon={<BarChart3 className="w-5 h-5" />} label="Total de pedidos" value={String(orders.length)} />
+          <KpiCard icon={<History className="w-5 h-5" />} label="Histórico" value={String(historyOrders.length)} />
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-card border border-border rounded-xl p-1 w-fit flex-wrap">
-          <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos</TabBtn>
+          <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos pendentes</TabBtn>
+          <TabBtn active={tab === "history"} onClick={() => setTab("history")}>Histórico</TabBtn>
           <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Cardápio</TabBtn>
           <TabBtn active={tab === "reports"} onClick={() => setTab("reports")}>Mais Vendidos</TabBtn>
         </div>
@@ -184,7 +201,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando...</div>
         ) : tab === "orders" ? (
-          <OrdersTab orders={orders} />
+          <OrdersTab orders={pendingOrders} onPaid={load} />
+        ) : tab === "history" ? (
+          <HistoryTab orders={historyOrders} />
         ) : tab === "products" ? (
           <CatalogTab extraProducts={products} reload={load} />
         ) : (
@@ -217,18 +236,78 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-function OrdersTab({ orders }: { orders: DBOrder[] }) {
+function OrdersTab({ orders, onPaid }: { orders: DBOrder[]; onPaid: () => void }) {
+  const [search, setSearch] = useState("");
+
+  const filtered = orders.filter((o) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      o.customer_name?.toLowerCase().includes(q) ||
+      String(o.order_number).includes(q) ||
+      o.items?.some((it) => it.name.toLowerCase().includes(q))
+    );
+  });
+
   if (orders.length === 0) {
-    return <Empty msg="Nenhum pedido ainda." />;
+    return <Empty msg="Nenhum pedido pendente agora." />;
   }
   return (
-    <div className="space-y-3">
-      {orders.map((o) => (
-        <div key={o.id} className="bg-card border border-border rounded-2xl p-5 shadow-soft">
+    <div className="space-y-4">
+      <SearchBox value={search} onChange={setSearch} placeholder="Buscar por nome, pedido ou item..." />
+      {filtered.length === 0 && <Empty msg="Nenhum pedido encontrado para essa busca." />}
+      {filtered.map((o) => (
+        <OrderCard key={o.id} order={o} onPaid={onPaid} />
+      ))}
+    </div>
+  );
+}
+
+function HistoryTab({ orders }: { orders: DBOrder[] }) {
+  const [search, setSearch] = useState("");
+  const filtered = orders.filter((o) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return o.customer_name?.toLowerCase().includes(q) || String(o.order_number).includes(q);
+  });
+  if (orders.length === 0) return <Empty msg="Histórico vazio. Os pedidos pagos aparecerão aqui." />;
+  return (
+    <div className="space-y-4">
+      <SearchBox value={search} onChange={setSearch} placeholder="Buscar no histórico..." />
+      {filtered.map((o) => <OrderCard key={o.id} order={o} history />)}
+    </div>
+  );
+}
+
+function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative bg-card border border-border rounded-2xl shadow-soft">
+      <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full pl-12 pr-4 py-4 rounded-2xl bg-transparent outline-none" />
+    </div>
+  );
+}
+
+function OrderCard({ order: o, onPaid, history = false }: { order: DBOrder; onPaid?: () => void; history?: boolean }) {
+  const [payment, setPayment] = useState(o.payment_method ?? "dinheiro");
+  const [saving, setSaving] = useState(false);
+
+  const markPaid = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("orders").update({ status: "pago", payment_method: payment }).eq("id", o.id);
+    setSaving(false);
+    if (error) { toast.error("Erro ao marcar como pago"); return; }
+    toast.success("Pedido enviado para o histórico");
+    onPaid?.();
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-5 shadow-soft">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-display text-2xl font-bold text-primary">#{o.order_number}</span>
+                <span className="text-sm font-bold text-foreground">{o.customer_name || "Cliente"}</span>
                 <span className="text-xs px-2 py-1 rounded-full bg-tropical/15 text-tropical font-medium">
                   {o.order_type === "local" ? "🪑 Local" : "🛍️ Viagem"}
                 </span>
@@ -244,16 +323,42 @@ function OrdersTab({ orders }: { orders: DBOrder[] }) {
           </div>
           <div className="mt-3 pt-3 border-t border-border space-y-1">
             {o.items?.map((it, i) => (
-              <div key={i} className="text-sm flex justify-between gap-3">
-                <span className="text-foreground">{it.quantity}× {it.name}</span>
-                <span className="text-muted-foreground">{formatBRL(it.price * it.quantity)}</span>
+              <div key={i} className="text-sm flex justify-between gap-3 items-start">
+                <span className="text-foreground">
+                  {it.quantity}× {it.name}
+                  {it.description && <span className="block text-xs text-muted-foreground mt-0.5">{it.description}</span>}
+                </span>
+                <span className="text-muted-foreground whitespace-nowrap">{formatBRL(it.price * it.quantity)}</span>
               </div>
             ))}
           </div>
-        </div>
-      ))}
+          {!history ? (
+            <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row gap-3 sm:items-center">
+              <label className="flex-1 text-sm font-medium">
+                Forma de pagamento
+                <select value={payment} onChange={(e) => setPayment(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3">
+                  <option value="dinheiro">Dinheiro</option>
+                  <option value="pix">Pix</option>
+                  <option value="debito">Cartão de débito</option>
+                  <option value="credito">Cartão de crédito</option>
+                </select>
+              </label>
+              <button onClick={markPaid} disabled={saving} className="inline-flex items-center justify-center gap-2 bg-gradient-tropical text-tropical-foreground font-bold px-5 py-4 rounded-xl shadow-soft disabled:opacity-50 active:scale-95">
+                <CreditCard className="w-5 h-5" /> {saving ? "Salvando..." : "Pago / enviar ao histórico"}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-border text-sm text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-tropical" /> Pago em {paymentLabel(o.payment_method)}
+            </div>
+          )}
     </div>
   );
+}
+
+function paymentLabel(method: string | null) {
+  const labels: Record<string, string> = { dinheiro: "dinheiro", pix: "Pix", debito: "cartão de débito", credito: "cartão de crédito" };
+  return labels[method ?? ""] ?? "não informado";
 }
 
 const TYPE_LABEL: Record<AvailabilityType, string> = {

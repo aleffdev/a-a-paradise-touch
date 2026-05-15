@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { SimpleProduct } from "@/data/menu";
 import { useCart, formatBRL } from "@/contexts/CartContext";
-import { useAvailability } from "@/hooks/useAvailability";
 import { toast } from "sonner";
 import { Check, Minus, Plus } from "lucide-react";
 
-export function FlavorPicker({ product }: { product: SimpleProduct }) {
+export function FlavorPicker({ product, isAvailable }: { product: SimpleProduct; isAvailable: (key: string) => boolean }) {
   const { addItem } = useCart();
-  const { isAvailable } = useAvailability();
   const [flavor, setFlavor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
 

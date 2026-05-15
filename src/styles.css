@@ -42,11 +42,11 @@
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 0.875rem;
 
   /* Tropical brand palette */
-  --background: oklch(0.985 0.008 320);
-  --foreground: oklch(0.22 0.08 300);
+  --background: oklch(0.982 0.014 318);
+  --foreground: oklch(0.21 0.075 302);
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.08 300);
@@ -55,9 +55,9 @@
   --popover-foreground: oklch(0.22 0.08 300);
 
   /* Açaí purple */
-  --primary: oklch(0.42 0.18 305);
+  --primary: oklch(0.39 0.17 302);
   --primary-foreground: oklch(0.99 0.01 320);
-  --primary-glow: oklch(0.62 0.22 310);
+  --primary-glow: oklch(0.58 0.22 318);
 
   --secondary: oklch(0.96 0.03 320);
   --secondary-foreground: oklch(0.32 0.12 305);
@@ -69,7 +69,7 @@
   --accent-foreground: oklch(0.32 0.14 305);
 
   /* Tropical green (palm) */
-  --tropical: oklch(0.62 0.18 145);
+  --tropical: oklch(0.63 0.18 140);
   --tropical-foreground: oklch(0.99 0.01 145);
 
   --destructive: oklch(0.6 0.22 25);
@@ -83,9 +83,9 @@
   --ring: oklch(0.5 0.18 305);
 
   /* Brand gradients & shadows */
-  --gradient-hero: linear-gradient(135deg, oklch(0.32 0.18 305) 0%, oklch(0.5 0.22 315) 50%, oklch(0.65 0.2 145) 100%);
-  --gradient-purple: linear-gradient(135deg, oklch(0.42 0.18 305), oklch(0.62 0.22 310));
-  --gradient-tropical: linear-gradient(135deg, oklch(0.62 0.18 145), oklch(0.75 0.16 150));
+  --gradient-hero: radial-gradient(circle at 18% 20%, oklch(0.66 0.21 325 / 0.8), transparent 34%), linear-gradient(135deg, oklch(0.28 0.15 300) 0%, oklch(0.46 0.19 306) 52%, oklch(0.62 0.18 142) 100%);
+  --gradient-purple: linear-gradient(135deg, oklch(0.39 0.17 302), oklch(0.58 0.22 318));
+  --gradient-tropical: linear-gradient(135deg, oklch(0.63 0.18 140), oklch(0.72 0.15 150));
   --gradient-card: linear-gradient(180deg, oklch(1 0 0), oklch(0.97 0.02 320));
 
   --shadow-soft: 0 4px 16px -4px color-mix(in oklab, oklch(0.42 0.18 305) 18%, transparent);
