@@ -63,7 +63,7 @@ function CategoryScreen() {
 
       <main className="max-w-4xl mx-auto px-6 py-8 pb-24">
         {category.id === "acai" ? (
-          <AcaiBuilder />
+          <AcaiBuilder isAvailable={isAvailable} />
         ) : (
           <div className="space-y-5">
             {products.map((p) => (
