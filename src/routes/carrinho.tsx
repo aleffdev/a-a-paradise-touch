@@ -137,11 +137,15 @@ function CartScreen() {
                 <span className="text-sm font-semibold text-foreground">Nome do cliente</span>
                 <input
                   value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  maxLength={80}
-                  placeholder="Digite seu nome"
+                  onChange={(e) => {
+                    const filtered = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, "").slice(0, 15);
+                    setCustomerName(filtered);
+                  }}
+                  maxLength={15}
+                  placeholder="Apenas letras (máx. 15)"
                   className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-4 text-lg outline-none focus:ring-2 focus:ring-ring"
                 />
+                <span className="text-xs text-muted-foreground mt-1 block">Apenas letras, sem números. Máximo 15 caracteres.</span>
               </label>
               <button
                 onClick={finalize}
