@@ -194,6 +194,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="flex gap-1 mb-6 bg-card border border-border rounded-xl p-1 w-fit flex-wrap">
           <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>Pedidos pendentes</TabBtn>
           <TabBtn active={tab === "history"} onClick={() => setTab("history")}>Histórico</TabBtn>
+          <TabBtn active={tab === "financial"} onClick={() => setTab("financial")}>Financeiro</TabBtn>
           <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Cardápio</TabBtn>
           <TabBtn active={tab === "reports"} onClick={() => setTab("reports")}>Mais Vendidos</TabBtn>
         </div>
@@ -204,6 +205,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <OrdersTab orders={pendingOrders} onPaid={load} />
         ) : tab === "history" ? (
           <HistoryTab orders={historyOrders} />
+        ) : tab === "financial" ? (
+          <FinancialTab orders={historyOrders} />
         ) : tab === "products" ? (
           <CatalogTab extraProducts={products} reload={load} />
         ) : (
