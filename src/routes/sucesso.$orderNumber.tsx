@@ -7,13 +7,16 @@ export const Route = createFileRoute("/sucesso/$orderNumber")({
 });
 
 function SuccessScreen() {
-  const [count, _setCount] = [15, undefined as never];
-  void _setCount;
+  const [count, setCount] = useState(15);
 
   useEffect(() => {
     const t = setInterval(() => setCount((c) => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    if (count === 0) window.location.href = "/";
+  }, [count]);
 
   return (
     <main className="min-h-screen bg-gradient-hero flex items-center justify-center px-6">
@@ -26,9 +29,7 @@ function SuccessScreen() {
           Por favor, vá até o <span className="font-bold">caixa</span> e informe seu <span className="font-bold">nome</span> para realizar o pagamento.
         </p>
 
-        <p className="text-sm text-muted-foreground mt-6">
-          Bom apetite! 🌴
-        </p>
+        <p className="text-sm text-muted-foreground mt-6">Bom apetite! 🌴</p>
 
         <Link
           to="/"
@@ -36,18 +37,7 @@ function SuccessScreen() {
         >
           Novo pedido {count > 0 ? `(${count}s)` : ""}
         </Link>
-
-        <AutoRedirect seconds={count} />
       </div>
     </main>
   );
-}
-
-function AutoRedirect({ seconds }: { seconds: number }) {
-  useEffect(() => {
-    if (seconds === 0) {
-      window.location.href = "/";
-    }
-  }, [seconds]);
-  return null;
 }
