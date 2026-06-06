@@ -52,7 +52,7 @@ function CategoryScreen() {
             <Link to="/cardapio" className="inline-flex items-center gap-1 text-primary-foreground/90 hover:text-primary-foreground mb-3 bg-primary/40 backdrop-blur px-3 py-1.5 rounded-full text-sm">
               <ChevronLeft className="w-4 h-4" /> Cardápio
             </Link>
-            <div className="text-4xl">{category.emoji}</div>
+            
             <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground drop-shadow">
               {category.name}
             </h2>
