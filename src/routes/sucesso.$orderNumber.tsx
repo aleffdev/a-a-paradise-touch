@@ -7,8 +7,8 @@ export const Route = createFileRoute("/sucesso/$orderNumber")({
 });
 
 function SuccessScreen() {
-  const { orderNumber } = Route.useParams();
-  const [count, setCount] = useState(15);
+  const [count, _setCount] = [15, undefined as never];
+  void _setCount;
 
   useEffect(() => {
     const t = setInterval(() => setCount((c) => Math.max(0, c - 1)), 1000);
