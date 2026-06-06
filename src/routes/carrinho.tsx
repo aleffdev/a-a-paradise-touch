@@ -81,7 +81,9 @@ function CartScreen() {
             <div className="space-y-3">
               {items.map((item) => (
                 <div key={item.id} className="rounded-2xl bg-card border border-border p-4 flex gap-4 items-start shadow-soft">
-                  <div className="text-4xl">{item.emoji}</div>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-purple text-primary-foreground flex items-center justify-center shrink-0">
+                    <ShoppingCart className="w-6 h-6" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground">{item.name}</div>
                     {item.description && (
