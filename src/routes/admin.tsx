@@ -266,18 +266,129 @@ function OrdersTab({ orders, onPaid }: { orders: DBOrder[]; onPaid: () => void }
   );
 }
 
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function HistoryTab({ orders }: { orders: DBOrder[] }) {
   const [search, setSearch] = useState("");
+  const [date, setDate] = useState<string>(todayStr());
+  const [allDates, setAllDates] = useState(false);
+
   const filtered = orders.filter((o) => {
+    if (!allDates) {
+      const od = new Date(o.created_at);
+      const d = `${od.getFullYear()}-${String(od.getMonth() + 1).padStart(2, "0")}-${String(od.getDate()).padStart(2, "0")}`;
+      if (d !== date) return false;
+    }
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return o.customer_name?.toLowerCase().includes(q) || String(o.order_number).includes(q);
   });
+
+  const dayTotal = filtered.reduce((s, o) => s + Number(o.total), 0);
+
   if (orders.length === 0) return <Empty msg="Histórico vazio. Os pedidos pagos aparecerão aqui." />;
   return (
     <div className="space-y-4">
-      <SearchBox value={search} onChange={setSearch} placeholder="Buscar no histórico..." />
-      {filtered.map((o) => <OrderCard key={o.id} order={o} history />)}
+      <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-2xl p-4 shadow-soft">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou pedido..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm" />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setAllDates(false); }} disabled={allDates} className="px-3 py-2 rounded-lg border border-border bg-background text-sm disabled:opacity-50" />
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={allDates} onChange={(e) => setAllDates(e.target.checked)} />
+          Todos os dias
+        </label>
+        <div className="ml-auto text-sm">
+          <span className="text-muted-foreground">Total: </span>
+          <span className="font-display font-bold text-tropical">{formatBRL(dayTotal)}</span>
+          <span className="text-muted-foreground"> · {filtered.length} pedido(s)</span>
+        </div>
+      </div>
+      {filtered.length === 0 ? <Empty msg="Nenhum pedido nesse período." /> : filtered.map((o) => <OrderCard key={o.id} order={o} history />)}
+    </div>
+  );
+}
+
+function FinancialTab({ orders }: { orders: DBOrder[] }) {
+  const [date, setDate] = useState<string>(todayStr());
+  const [allDates, setAllDates] = useState(false);
+
+  const filtered = orders.filter((o) => {
+    if (allDates) return true;
+    const od = new Date(o.created_at);
+    const d = `${od.getFullYear()}-${String(od.getMonth() + 1).padStart(2, "0")}-${String(od.getDate()).padStart(2, "0")}`;
+    return d === date;
+  });
+
+  const total = filtered.reduce((s, o) => s + Number(o.total), 0);
+  const byMethod = filtered.reduce<Record<string, { count: number; total: number }>>((acc, o) => {
+    const m = o.payment_method ?? "outros";
+    if (!acc[m]) acc[m] = { count: 0, total: 0 };
+    acc[m].count += 1;
+    acc[m].total += Number(o.total);
+    return acc;
+  }, {});
+
+  const methods: { key: string; label: string }[] = [
+    { key: "dinheiro", label: "Dinheiro" },
+    { key: "pix", label: "Pix" },
+    { key: "debito", label: "Cartão de débito" },
+    { key: "credito", label: "Cartão de crédito" },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-2xl p-4 shadow-soft">
+        <Calendar className="w-4 h-4 text-muted-foreground" />
+        <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setAllDates(false); }} disabled={allDates} className="px-3 py-2 rounded-lg border border-border bg-background text-sm disabled:opacity-50" />
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={allDates} onChange={(e) => setAllDates(e.target.checked)} />
+          Todos os dias
+        </label>
+        <span className="ml-auto text-xs text-muted-foreground">Somente pedidos pagos contam aqui.</span>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="bg-gradient-purple text-primary-foreground rounded-2xl p-6 shadow-glow">
+          <div className="flex items-center gap-2 text-primary-foreground/80 text-sm"><Wallet className="w-5 h-5" /> Receita {allDates ? "total" : "do dia"}</div>
+          <div className="font-display text-4xl font-bold mt-2">{formatBRL(total)}</div>
+          <div className="text-primary-foreground/80 text-sm mt-1">{filtered.length} pedido(s) pago(s)</div>
+        </div>
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm"><TrendingUp className="w-5 h-5" /> Ticket médio</div>
+          <div className="font-display text-4xl font-bold mt-2">{formatBRL(filtered.length ? total / filtered.length : 0)}</div>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+        <h3 className="font-display text-xl font-bold mb-4">Por forma de pagamento</h3>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {methods.map((m) => {
+            const data = byMethod[m.key] ?? { count: 0, total: 0 };
+            const pct = total > 0 ? (data.total / total) * 100 : 0;
+            return (
+              <div key={m.key} className="border border-border rounded-xl p-4">
+                <div className="flex items-baseline justify-between">
+                  <div className="font-semibold">{m.label}</div>
+                  <div className="text-xs text-muted-foreground">{data.count} pedido(s)</div>
+                </div>
+                <div className="font-display text-2xl font-bold mt-2 text-tropical">{formatBRL(data.total)}</div>
+                <div className="h-2 mt-3 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-tropical" style={{ width: `${pct}%` }} />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">{pct.toFixed(1)}% do total</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
