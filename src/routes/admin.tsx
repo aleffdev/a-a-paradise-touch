@@ -114,7 +114,7 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"orders" | "history" | "products" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "history" | "financial" | "products" | "reports">("orders");
   const [orders, setOrders] = useState<DBOrder[]>([]);
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [loading, setLoading] = useState(true);
