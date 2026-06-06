@@ -2,9 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCart, formatBRL } from "@/contexts/CartContext";
 import { TotemHeader } from "@/components/totem/TotemHeader";
-import { Trash2, Minus, Plus, ChevronLeft, ShoppingBag } from "lucide-react";
+import { Trash2, Minus, Plus, ChevronLeft, ShoppingBag, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/;
 
 export const Route = createFileRoute("/carrinho")({
   component: CartScreen,
@@ -21,6 +23,10 @@ function CartScreen() {
     const cleanName = customerName.trim().replace(/\s+/g, " ");
     if (cleanName.length < 2) {
       toast.error("Digite o nome do cliente para finalizar.");
+      return;
+    }
+    if (!NAME_REGEX.test(cleanName)) {
+      toast.error("O nome deve conter apenas letras.");
       return;
     }
     setSubmitting(true);
@@ -75,7 +81,9 @@ function CartScreen() {
             <div className="space-y-3">
               {items.map((item) => (
                 <div key={item.id} className="rounded-2xl bg-card border border-border p-4 flex gap-4 items-start shadow-soft">
-                  <div className="text-4xl">{item.emoji}</div>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-purple text-primary-foreground flex items-center justify-center shrink-0">
+                    <ShoppingCart className="w-6 h-6" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground">{item.name}</div>
                     {item.description && (
@@ -129,11 +137,15 @@ function CartScreen() {
                 <span className="text-sm font-semibold text-foreground">Nome do cliente</span>
                 <input
                   value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  maxLength={80}
-                  placeholder="Digite seu nome"
+                  onChange={(e) => {
+                    const filtered = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, "").slice(0, 15);
+                    setCustomerName(filtered);
+                  }}
+                  maxLength={15}
+                  placeholder="Apenas letras (máx. 15)"
                   className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-4 text-lg outline-none focus:ring-2 focus:ring-ring"
                 />
+                <span className="text-xs text-muted-foreground mt-1 block">Apenas letras, sem números. Máximo 15 caracteres.</span>
               </label>
               <button
                 onClick={finalize}

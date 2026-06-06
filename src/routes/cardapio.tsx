@@ -74,7 +74,6 @@ function MenuScreen() {
                   </div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 p-5 text-primary-foreground">
-                  <div className="text-3xl mb-1">{cat.emoji}</div>
                   <div className="font-display text-xl md:text-2xl font-bold leading-tight">
                     {cat.name}
                   </div>

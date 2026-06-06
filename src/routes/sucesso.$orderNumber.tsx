@@ -7,13 +7,16 @@ export const Route = createFileRoute("/sucesso/$orderNumber")({
 });
 
 function SuccessScreen() {
-  const { orderNumber } = Route.useParams();
   const [count, setCount] = useState(15);
 
   useEffect(() => {
     const t = setInterval(() => setCount((c) => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    if (count === 0) window.location.href = "/";
+  }, [count]);
 
   return (
     <main className="min-h-screen bg-gradient-hero flex items-center justify-center px-6">
@@ -22,18 +25,11 @@ function SuccessScreen() {
           <CheckCircle2 className="w-14 h-14 text-tropical" strokeWidth={2} />
         </div>
         <h1 className="font-display text-4xl font-bold text-foreground">Pedido recebido!</h1>
-        <p className="text-muted-foreground mt-2">
-          Muito obrigado! Vá até o caixa para realizar o pagamento.
+        <p className="text-foreground mt-3 text-lg">
+          Por favor, vá até o <span className="font-bold">caixa</span> e informe seu <span className="font-bold">nome</span> para realizar o pagamento.
         </p>
 
-        <div className="mt-6 rounded-2xl bg-secondary p-6">
-          <p className="text-sm text-muted-foreground uppercase tracking-widest">Senha do pedido</p>
-          <p className="font-display text-6xl font-bold text-primary mt-1">#{orderNumber}</p>
-        </div>
-
-        <p className="text-sm text-muted-foreground mt-6">
-          Informe seu nome ou o número do pedido no balcão. Bom apetite! 🌴
-        </p>
+        <p className="text-sm text-muted-foreground mt-6">Bom apetite! 🌴</p>
 
         <Link
           to="/"
@@ -41,18 +37,7 @@ function SuccessScreen() {
         >
           Novo pedido {count > 0 ? `(${count}s)` : ""}
         </Link>
-
-        <AutoRedirect seconds={count} />
       </div>
     </main>
   );
-}
-
-function AutoRedirect({ seconds }: { seconds: number }) {
-  useEffect(() => {
-    if (seconds === 0) {
-      window.location.href = "/";
-    }
-  }, [seconds]);
-  return null;
 }

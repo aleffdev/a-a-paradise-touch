@@ -33,8 +33,7 @@ export function FlavorPicker({ product, isAvailable }: { product: SimpleProduct;
       <div className="rounded-3xl bg-card border border-dashed border-border p-6 shadow-soft opacity-60">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-3xl grayscale">{product.emoji}</div>
-            <h3 className="font-display text-2xl font-bold mt-1">{product.name}</h3>
+            <h3 className="font-display text-2xl font-bold">{product.name}</h3>
             <p className="text-muted-foreground text-sm mt-1">Indisponível no momento</p>
           </div>
           <span className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-full">
@@ -51,8 +50,7 @@ export function FlavorPicker({ product, isAvailable }: { product: SimpleProduct;
     <div className="rounded-3xl bg-card border border-border p-6 shadow-soft">
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
-          <div className="text-3xl">{product.emoji}</div>
-          <h3 className="font-display text-2xl font-bold mt-1">{product.name}</h3>
+          <h3 className="font-display text-2xl font-bold">{product.name}</h3>
           <p className="text-tropical font-bold text-lg mt-1">{formatBRL(product.price)}</p>
         </div>
       </div>
