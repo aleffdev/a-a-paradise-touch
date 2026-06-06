@@ -25,6 +25,10 @@ function CartScreen() {
       toast.error("Digite o nome do cliente para finalizar.");
       return;
     }
+    if (!NAME_REGEX.test(cleanName)) {
+      toast.error("O nome deve conter apenas letras.");
+      return;
+    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase
