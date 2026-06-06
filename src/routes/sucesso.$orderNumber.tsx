@@ -22,17 +22,12 @@ function SuccessScreen() {
           <CheckCircle2 className="w-14 h-14 text-tropical" strokeWidth={2} />
         </div>
         <h1 className="font-display text-4xl font-bold text-foreground">Pedido recebido!</h1>
-        <p className="text-muted-foreground mt-2">
-          Muito obrigado! Vá até o caixa para realizar o pagamento.
+        <p className="text-foreground mt-3 text-lg">
+          Por favor, vá até o <span className="font-bold">caixa</span> e informe seu <span className="font-bold">nome</span> para realizar o pagamento.
         </p>
 
-        <div className="mt-6 rounded-2xl bg-secondary p-6">
-          <p className="text-sm text-muted-foreground uppercase tracking-widest">Senha do pedido</p>
-          <p className="font-display text-6xl font-bold text-primary mt-1">#{orderNumber}</p>
-        </div>
-
         <p className="text-sm text-muted-foreground mt-6">
-          Informe seu nome ou o número do pedido no balcão. Bom apetite! 🌴
+          Bom apetite! 🌴
         </p>
 
         <Link
