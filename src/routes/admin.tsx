@@ -5,7 +5,7 @@ import { CATEGORIES, CategoryId } from "@/data/menu";
 import { formatBRL } from "@/contexts/CartContext";
 import { buildCatalogItems, useAvailability, setItemAvailability, AvailabilityItem, AvailabilityType } from "@/hooks/useAvailability";
 import { toast } from "sonner";
-import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, BarChart3, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2 } from "lucide-react";
+import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2, Wallet, Calendar } from "lucide-react";
 import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 
 const ADMIN_PASSWORD = "admin123";
