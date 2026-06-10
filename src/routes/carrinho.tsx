@@ -126,7 +126,7 @@ function CartScreen() {
               <div className="flex justify-between mb-2 text-muted-foreground">
                 <span>Tipo de pedido</span>
                 <span className="font-medium text-foreground">
-                  {orderType === "local" ? "🪑 Retirar no local" : "🛍️ Para viagem"}
+                  {orderType === "local" ? "Retirar no local" : "Para viagem"}
                 </span>
               </div>
               <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-border">
