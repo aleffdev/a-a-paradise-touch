@@ -44,9 +44,12 @@ export type Database = {
           customer_name: string
           id: string
           items: Json
+          notes: string | null
           order_number: number
           order_type: string
+          paid_at: string | null
           payment_method: string | null
+          ready_at: string | null
           status: string
           total: number
         }
@@ -55,9 +58,12 @@ export type Database = {
           customer_name?: string
           id?: string
           items: Json
+          notes?: string | null
           order_number?: number
           order_type: string
+          paid_at?: string | null
           payment_method?: string | null
+          ready_at?: string | null
           status?: string
           total: number
         }
@@ -66,9 +72,12 @@ export type Database = {
           customer_name?: string
           id?: string
           items?: Json
+          notes?: string | null
           order_number?: number
           order_type?: string
+          paid_at?: string | null
           payment_method?: string | null
+          ready_at?: string | null
           status?: string
           total?: number
         }
@@ -79,9 +88,11 @@ export type Database = {
           available: boolean
           category: string
           created_at: string
+          description: string | null
           emoji: string
           flavors: string[]
           id: string
+          image: string | null
           name: string
           price: number
           updated_at: string
@@ -90,9 +101,11 @@ export type Database = {
           available?: boolean
           category: string
           created_at?: string
+          description?: string | null
           emoji?: string
           flavors?: string[]
           id?: string
+          image?: string | null
           name: string
           price: number
           updated_at?: string
@@ -101,9 +114,11 @@ export type Database = {
           available?: boolean
           category?: string
           created_at?: string
+          description?: string | null
           emoji?: string
           flavors?: string[]
           id?: string
+          image?: string | null
           name?: string
           price?: number
           updated_at?: string
