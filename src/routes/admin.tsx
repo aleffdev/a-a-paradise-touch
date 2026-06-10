@@ -116,10 +116,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     try {
       const [o, p] = await Promise.all([
         ordersService.list(),
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        productsService.list(),
       ]);
       setOrders(o);
-      if (p.data) setProducts(p.data as unknown as DBProduct[]);
+      setProducts(p as unknown as DBProduct[]);
     } finally {
       setLoading(false);
     }
