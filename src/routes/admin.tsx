@@ -687,15 +687,19 @@ function CatalogTab({ extraProducts, reload }: { extraProducts: DBProduct[]; rel
 
 function ExtraProductRow({ p, reload }: { p: DBProduct; reload: () => void }) {
   const toggle = async () => {
-    await supabase.from("products").update({ available: !p.available }).eq("id", p.id);
-    toast.success(p.available ? "Marcado como indisponível" : "Marcado como disponível");
-    reload();
+    try {
+      await productsService.setAvailable(p.id, !p.available);
+      toast.success(p.available ? "Marcado como indisponível" : "Marcado como disponível");
+      reload();
+    } catch { toast.error("Erro ao atualizar"); }
   };
   const remove = async () => {
     if (!confirm("Remover este produto?")) return;
-    await supabase.from("products").delete().eq("id", p.id);
-    toast.success("Produto removido");
-    reload();
+    try {
+      await productsService.remove(p.id);
+      toast.success("Produto removido");
+      reload();
+    } catch { toast.error("Erro ao remover"); }
   };
   return (
     <div className={`bg-card border border-border rounded-2xl p-4 flex items-center gap-3 shadow-soft ${!p.available ? "opacity-60" : ""}`}>
