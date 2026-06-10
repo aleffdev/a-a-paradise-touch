@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, CategoryId } from "@/data/menu";
 import { formatBRL } from "@/contexts/CartContext";
 import { buildCatalogItems, useAvailability, setItemAvailability, AvailabilityItem, AvailabilityType } from "@/hooks/useAvailability";
+import { ordersService, productsService, computeStats } from "@/services";
+import type { Order, PaymentMethod } from "@/types/domain";
+import { PAID_STATUSES, PAYMENT_METHOD_LABEL, ORDER_STATUS_LABEL } from "@/types/domain";
 import { toast } from "sonner";
-import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2, Wallet, Calendar } from "lucide-react";
+import { Lock, LogOut, Plus, Trash2, Eye, EyeOff, ChevronLeft, ShoppingBag, TrendingUp, Search, History, CreditCard, CheckCircle2, Wallet, Calendar, ChefHat, X } from "lucide-react";
 import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 
 const ADMIN_PASSWORD = "admin123";
