@@ -755,28 +755,6 @@ function ExtraProductForm({ onCreated }: { onCreated: () => void }) {
   );
 }
 
-function ReportsTab({ top }: { top: { name: string; qty: number }[] }) {
-  if (top.length === 0) return <Empty msg="Sem dados de vendas ainda." />;
-  const max = top[0].qty;
-  return (
-    <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
-      <h3 className="font-display text-xl font-bold mb-5">Produtos Mais Vendidos</h3>
-      <div className="space-y-4">
-        {top.map((t, i) => (
-          <div key={t.name}>
-            <div className="flex justify-between text-sm mb-1.5">
-              <span className="font-medium">#{i + 1} {t.name}</span>
-              <span className="text-muted-foreground">{t.qty} vendido(s)</span>
-            </div>
-            <div className="h-3 bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-purple rounded-full transition-all" style={{ width: `${(t.qty / max) * 100}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function Empty({ msg }: { msg: string }) {
   return (
