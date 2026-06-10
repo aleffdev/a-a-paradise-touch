@@ -733,14 +733,15 @@ function ExtraProductForm({ onCreated }: { onCreated: () => void }) {
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("products").insert({
-      name, category, price: Number(price), emoji,
-      flavors: flavors.split(",").map((s) => s.trim()).filter(Boolean),
-      available: true,
-    });
-    if (error) { toast.error("Erro ao criar produto"); return; }
-    toast.success("Produto criado!");
-    onCreated();
+    try {
+      await productsService.create({
+        name, category, price: Number(price), emoji,
+        flavors: flavors.split(",").map((s) => s.trim()).filter(Boolean),
+        available: true,
+      });
+      toast.success("Produto criado!");
+      onCreated();
+    } catch { toast.error("Erro ao criar produto"); }
   };
 
   return (
