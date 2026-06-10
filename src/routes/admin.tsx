@@ -29,18 +29,6 @@ interface DBProduct {
   available: boolean;
 }
 
-interface DBOrder {
-  id: string;
-  order_number: number;
-  customer_name: string;
-  order_type: string;
-  items: { name: string; quantity: number; price: number; productKey: string; description?: string }[];
-  total: number;
-  status: string;
-  payment_method: string | null;
-  created_at: string;
-}
-
 function AdminScreen() {
   const [authed, setAuthed] = useState(false);
 
