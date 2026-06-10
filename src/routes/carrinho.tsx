@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useCart, formatBRL } from "@/contexts/CartContext";
 import { TotemHeader } from "@/components/totem/TotemHeader";
 import { Trash2, Minus, Plus, ChevronLeft, ShoppingBag, ShoppingCart } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ordersService } from "@/services";
 import { toast } from "sonner";
 
 const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/;
