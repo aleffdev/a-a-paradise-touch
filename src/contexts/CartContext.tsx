@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 
 const ORDER_TYPE_KEY = "totem:orderType";
+const CART_KEY = "totem:cart";
 
 export type OrderType = "local" | "viagem";
 
@@ -29,7 +30,24 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = window.sessionStorage.getItem(CART_KEY);
+      return raw ? (JSON.parse(raw) as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(CART_KEY, JSON.stringify(items));
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [items]);
   const [orderType, setOrderTypeState] = useState<OrderType | null>(() => {
     if (typeof window === "undefined") return null;
     const saved = window.sessionStorage.getItem(ORDER_TYPE_KEY);
