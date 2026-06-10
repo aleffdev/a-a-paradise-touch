@@ -31,20 +31,21 @@ function CartScreen() {
     }
     setSubmitting(true);
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .insert({
-          customer_name: cleanName,
-          order_type: orderType ?? "local",
-          items: items as never,
-          total,
-        })
-        .select("order_number")
-        .single();
-
-      if (error) throw error;
+      const order = await ordersService.create({
+        customerName: cleanName,
+        orderType: orderType ?? "local",
+        items: items.map((i) => ({
+          productKey: i.productKey,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          description: i.description,
+          emoji: i.emoji,
+        })),
+        total,
+      });
       clear();
-      navigate({ to: "/sucesso/$orderNumber", params: { orderNumber: String(data.order_number) } });
+      navigate({ to: "/sucesso/$orderNumber", params: { orderNumber: String(order.orderNumber) } });
     } catch (e) {
       console.error(e);
       toast.error("Não foi possível finalizar o pedido. Tente novamente.");
