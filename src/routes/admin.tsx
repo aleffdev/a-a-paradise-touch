@@ -114,7 +114,7 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"orders" | "history" | "financial" | "products" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "history" | "financial" | "products">("orders");
   const [orders, setOrders] = useState<DBOrder[]>([]);
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +196,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <TabBtn active={tab === "history"} onClick={() => setTab("history")}>Histórico</TabBtn>
           <TabBtn active={tab === "financial"} onClick={() => setTab("financial")}>Financeiro</TabBtn>
           <TabBtn active={tab === "products"} onClick={() => setTab("products")}>Cardápio</TabBtn>
-          <TabBtn active={tab === "reports"} onClick={() => setTab("reports")}>Mais Vendidos</TabBtn>
         </div>
 
         {loading ? (
@@ -207,10 +206,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <HistoryTab orders={historyOrders} />
         ) : tab === "financial" ? (
           <FinancialTab orders={historyOrders} />
-        ) : tab === "products" ? (
-          <CatalogTab extraProducts={products} reload={load} />
         ) : (
-          <ReportsTab top={topSellers} />
+          <CatalogTab extraProducts={products} reload={load} />
         )}
       </main>
     </div>

@@ -3,6 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo-acai-paraiso-uploaded.png";
 import heroImg from "@/assets/hero-acai.jpg";
 import { PalmDecor } from "@/components/totem/PalmDecor";
+import { Store, ShoppingBag, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,8 +50,8 @@ function WelcomeScreen() {
 
         {/* Center content */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl">
-          <p className="text-primary-foreground/90 text-lg md:text-xl font-medium uppercase tracking-widest mb-4">
-            🌴 Bem-vindo ao paraíso
+          <p className="text-primary-foreground/90 text-sm md:text-base font-semibold uppercase tracking-[0.3em] mb-4">
+            Bem-vindo ao paraíso
           </p>
           <h2 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-primary-foreground leading-[0.95] drop-shadow-lg">
             Monte seu açaí
@@ -66,26 +67,30 @@ function WelcomeScreen() {
             <Link
               to="/cardapio"
               onClick={() => start("local")}
-              className="group relative overflow-hidden rounded-3xl bg-card text-card-foreground p-8 shadow-card hover:shadow-glow transition-all active:scale-95 border-2 border-transparent hover:border-primary"
+              className="group relative overflow-hidden rounded-3xl bg-card text-card-foreground p-8 shadow-card hover:shadow-glow transition-all active:scale-[0.98] border border-border hover:border-primary/40"
             >
-              <div className="text-6xl mb-4">🪑</div>
-              <div className="font-display text-2xl font-bold text-primary">Retirar no Local</div>
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                <Store className="w-8 h-8" />
+              </div>
+              <div className="font-display text-2xl font-bold text-foreground">Retirar no Local</div>
               <p className="text-muted-foreground mt-1">Comer aqui mesmo</p>
-              <div className="mt-4 inline-flex items-center text-primary font-semibold">
-                Começar pedido →
+              <div className="mt-5 inline-flex items-center gap-1.5 text-primary font-semibold">
+                Começar pedido <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
             </Link>
 
             <Link
               to="/cardapio"
               onClick={() => start("viagem")}
-              className="group relative overflow-hidden rounded-3xl bg-gradient-tropical text-tropical-foreground p-8 shadow-card hover:shadow-glow transition-all active:scale-95 border-2 border-transparent"
+              className="group relative overflow-hidden rounded-3xl bg-gradient-tropical text-tropical-foreground p-8 shadow-card hover:shadow-glow transition-all active:scale-[0.98] border border-white/10"
             >
-              <div className="text-6xl mb-4">🛍️</div>
+              <div className="w-16 h-16 rounded-2xl bg-white/15 text-tropical-foreground flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                <ShoppingBag className="w-8 h-8" />
+              </div>
               <div className="font-display text-2xl font-bold">Para Viagem</div>
               <p className="text-tropical-foreground/85 mt-1">Levar pra casa</p>
-              <div className="mt-4 inline-flex items-center font-semibold">
-                Começar pedido →
+              <div className="mt-5 inline-flex items-center gap-1.5 font-semibold">
+                Começar pedido <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
             </Link>
           </div>
