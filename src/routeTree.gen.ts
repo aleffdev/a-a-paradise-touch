@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CozinhaRouteImport } from './routes/cozinha'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as CardapioRouteImport } from './routes/cardapio'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -16,6 +17,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SucessoOrderNumberRouteImport } from './routes/sucesso.$orderNumber'
 import { Route as CategoriaCategoryIdRouteImport } from './routes/categoria.$categoryId'
 
+const CozinhaRoute = CozinhaRouteImport.update({
+  id: '/cozinha',
+  path: '/cozinha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CarrinhoRoute = CarrinhoRouteImport.update({
   id: '/carrinho',
   path: '/carrinho',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
+  '/cozinha': typeof CozinhaRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
   '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
+  '/cozinha': typeof CozinhaRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
   '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/cardapio': typeof CardapioRoute
   '/carrinho': typeof CarrinhoRoute
+  '/cozinha': typeof CozinhaRoute
   '/categoria/$categoryId': typeof CategoriaCategoryIdRoute
   '/sucesso/$orderNumber': typeof SucessoOrderNumberRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cardapio'
     | '/carrinho'
+    | '/cozinha'
     | '/categoria/$categoryId'
     | '/sucesso/$orderNumber'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cardapio'
     | '/carrinho'
+    | '/cozinha'
     | '/categoria/$categoryId'
     | '/sucesso/$orderNumber'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cardapio'
     | '/carrinho'
+    | '/cozinha'
     | '/categoria/$categoryId'
     | '/sucesso/$orderNumber'
   fileRoutesById: FileRoutesById
@@ -104,12 +116,20 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CardapioRoute: typeof CardapioRoute
   CarrinhoRoute: typeof CarrinhoRoute
+  CozinhaRoute: typeof CozinhaRoute
   CategoriaCategoryIdRoute: typeof CategoriaCategoryIdRoute
   SucessoOrderNumberRoute: typeof SucessoOrderNumberRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/cozinha': {
+      id: '/cozinha'
+      path: '/cozinha'
+      fullPath: '/cozinha'
+      preLoaderRoute: typeof CozinhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/carrinho': {
       id: '/carrinho'
       path: '/carrinho'
@@ -160,9 +180,19 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CardapioRoute: CardapioRoute,
   CarrinhoRoute: CarrinhoRoute,
+  CozinhaRoute: CozinhaRoute,
   CategoriaCategoryIdRoute: CategoriaCategoryIdRoute,
   SucessoOrderNumberRoute: SucessoOrderNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
